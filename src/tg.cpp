@@ -108,7 +108,8 @@ int main(int argc, char *argv[]) {
 		SDL_SetRenderDrawColor(renderer, 32, 32, 32, 0xFF);
 		SDL_RenderClear(renderer);
 
-		//for (int i = 0; i < 100; i++) {
+//		//for (int i = 0; i < 100; i++) {
+
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 32);
 
 		unsigned char data[1024 * 8];
@@ -118,11 +119,12 @@ int main(int argc, char *argv[]) {
 			p[i].y = 400 - data[i];
 		}
 		SDL_RenderDrawLines(renderer, p, 1024);
-		for (int i = 0; i < 256; i++) {
-			p[i].x = i * 800 / 256;
-			p[i].y = 480 - data[i] * 480 / 255;
-		}
-		SDL_RenderDrawLines(renderer, p, 256);
+
+//		for (int i = 0; i < 256; i++) {
+//			p[i].x = i * 800 / 256;
+//			p[i].y = 480 - data[i] * 480 / 255;
+//		}
+//		SDL_RenderDrawLines(renderer, p, 256);
 
 		//rand() % 320, rand() % 240,
 		//rand() % 320, rand() % 240);

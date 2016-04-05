@@ -191,17 +191,23 @@ void PrepData::DefaultConfig(void) {
 
 #define ch_max(nn)						\
 if (ch##nn)	{							\
-	if (*(ch##nn) > c1_val) {			\
-		c2_val = c1_val;				\
-		c2_index = c1_index;			\
-		c1_val = *(ch##nn);				\
-		c1_index = ch_index##nn;		\
-	} else if (*(ch##nn) > c2_val) {	\
-		c2_val = *(ch##nn);				\
-		c2_index = ch_index##nn;		\
-	}									\
+	if (*ch##nn > c##nn)				\
+		c##nn = *ch##nn;				\
 	ch##nn++;							\
 }
+//----------------------------------------------------------------------------
+
+#define max2(n1, n2, n3, n4)										\
+		if (c##n2 > c##n3) {										\
+			*out = COLOR_TABLE(c##n1, c##n2, n1 - 1, n2 - 1);		\
+		} else {													\
+			if (c##n1 > c##n4) {									\
+				*out = COLOR_TABLE(c##n1, c##n3, n1 - 1, n3 - 1);	\
+			} else {												\
+				*out = COLOR_TABLE(c##n3, c##n4, n3 - 1, n3 - 1);	\
+			}														\
+		}
+//----------------------------------------------------------------------------
 
 int x_pos = 0;
 
@@ -228,16 +234,12 @@ void PrepData::PutData(unsigned char *aData, int aSize) {
 	while (*tt) {
 		TrackChannel **tc = (*tt)->m_Channel;
 		unsigned char *ch1 = (*tc) ? &aData[(*tc)->m_DataOffset] : NULL;
-		int ch_index1 = (*tc) ? (*tc)->m_ColorIndex : 0;
 		tc++;
 		unsigned char *ch2 = (*tc) ? &aData[(*tc)->m_DataOffset] : NULL;
-		int ch_index2 = (*tc) ? (*tc)->m_ColorIndex : 0;
 		tc++;
 		unsigned char *ch3 = (*tc) ? &aData[(*tc)->m_DataOffset] : NULL;
-		int ch_index3 = (*tc) ? (*tc)->m_ColorIndex : 0;
 		tc++;
 		unsigned char *ch4 = (*tc) ? &aData[(*tc)->m_DataOffset] : NULL;
-		int ch_index4 = (*tc) ? (*tc)->m_ColorIndex : 0;
 		tc++;
 
 		int l = 0;
@@ -247,99 +249,37 @@ void PrepData::PutData(unsigned char *aData, int aSize) {
 		unsigned char c3 = 0;
 		unsigned char c4 = 0;
 
-		// find max
-
-		unsigned char m1 = 0;
-		unsigned char m2 = 0;
-
 		// max of 4
-		if (c1 > c2) {
-			if (c3 > c4) {
-				if (c2 > c3) {
-					m1 = c1;
-					m2 = c2;
-				} else {
-					if (c1 > c4) {
-						m1 = c1;
-						m2 = c3;
-					} else {
-						m1 = c3;
-						m2 = c4;
-					}
-				}
-			} else {
-				if (c2 > c4) {
-					m1 = c1;
-					m2 = c2;
-				} else {
-					if (c1 > c3) {
-						m1 = c1;
-						m2 = c4;
-					} else {
-						m1 = c4;
-						m2 = c3;
-					}
-				}
-			}
-		} else {
-			if (c3 > c4) {
-				if (c1 > c3) {
-					m1 = c1;
-					m2 = c2;
-				} else {
-					if (c2 > c4) {
-						m1 = c2;
-						m2 = c3;
-					} else {
-						m1 = c3;
-						m2 = c4;
-					}
-				}
-			} else {
-				if (c1 > c4) {
-					m1 = c1;
-					m2 = c2;
-				} else {
-					if (c2 > c3) {
-						m1 = c2;
-						m2 = c4;
-					} else {
-						m1 = c4;
-						m2 = c3;
-					}
-				}
-			}
-		}
-	}
 
-	int c1_index = 0;
-	int c2_index = 0;
-	while (l < (*tt)->m_ScreenHeight) {
-		if (d <= 0) {
-			if (c1_index < c2_index)
-				*out = COLOR_TABLE(c1_val, c2_val, c1_index, c2_index);
-			else
-				*out = COLOR_TABLE(c2_val, c1_val, c2_index, c1_index);
-			out += 800;
-			c1_val = c2_val = 0;
-			c1_index = c2_index = 0;
-			d += (*tt)->m_RealHeight;
-			l++;
-		} else {
-			if (ch1) {
-				if (*ch1 > c1_val) {
-					ch1 = c1_val;
+		while (l < (*tt)->m_ScreenHeight) {
+			if (d <= 0) {
+				if (c1 > c2) {
+					if (c3 > c4) {
+						max2(1, 2, 3, 4);
+					} else {
+						max2(1, 2, 4, 3);
+					}
+				} else {
+					if (c3 > c4) {
+						max2(2, 1, 3, 4)
+					} else {
+						max2(2, 1, 4, 3)
+					}
 				}
+				c1 = c2 = c3 = c4 = 0;
+				out += 800;
+				d += (*tt)->m_RealHeight;
+				l++;
+			} else {
+				ch_max(1);
+				ch_max(2);
+				ch_max(3);
+				ch_max(4);
+				d -= (*tt)->m_ScreenHeight;
 			}
-//				ch_max(1);
-//				ch_max(2);
-//				ch_max(3);
-//				ch_max(4);
-//				d -= (*tt)->m_ScreenHeight;
 		}
+		tt++;
 	}
-	tt++;
-}
 }
 //----------------------------------------------------------------------------
 

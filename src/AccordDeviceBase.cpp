@@ -105,7 +105,7 @@ void AccordDeviceBase::SetDefaultParam(void) {
 
 	// set default VRC parameters
 	for (int i = 0; i < 8; i++) {
-		SetVRC(i, 140, 240, 0);
+		SetVRC(i, 180, 180, 0);
 	}
 
 	// set FIR filter 2.5 MHz for all channel
@@ -122,7 +122,7 @@ void AccordDeviceBase::SetDefaultParam(void) {
 		SetDelay(i, 0);
 
 	for (int i = 0; i < 8; i++)
-		SetAdcAccum(i, 16);
+		SetAdcAccum(i, 32);
 
 	// switch to normal mode (from "POWER-ON 0x0007" test mode)
 	alt_write_word(m_CtrlCmd, 0x02);
@@ -253,12 +253,19 @@ void AccordDeviceBase::GetData(unsigned char *aData, int aSize) {
 		alt_write_word(m_PioSync, 1);	// pulse sync
 		alt_write_word(m_PioSync, 0);
 
-		while ((alt_read_word((void *) ((long int) m_RecvAddr + 0x3400 * 4)) & 1)
-				== 0) {
-			usleep(10);
-		}
+		int len = 0;
+		do {
+			while ((alt_read_word((void *) ((long int) m_RecvAddr + 0x3400 * 4))
+					& 1) == 0) {
+				usleep(20);
+			}
 
-		memcpy(&aData[i * 128], (void *) *&m_RecvAddr, 128);
+			len = alt_read_word((void *) ((long int) m_RecvAddr + 0x3000 * 4));
+		} while (len != 32);
+
+		usleep(20);
+
+		memcpy(&aData[i * 128], m_RecvAddr, len * 4);
 	}
 }
 //----------------------------------------------------------------------------
